@@ -1,0 +1,15 @@
+C:\Users\thuza\Documents\Git\Github\Master\Master\Labb_1\Labb_1\obj\Debug\net10.0\Labb_1.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\thuza\Documents\Git\Github\Master\Master\Labb_1\Labb_1\obj\Debug\net10.0\Labb_1.AssemblyInfoInputs.cache
+C:\Users\thuza\Documents\Git\Github\Master\Master\Labb_1\Labb_1\obj\Debug\net10.0\Labb_1.AssemblyInfo.cs
+C:\Users\thuza\Documents\Git\Github\Master\Master\Labb_1\Labb_1\obj\Debug\net10.0\Labb_1.csproj.CoreCompileInputs.cache
+C:\Users\thuza\Documents\Git\Github\Master\Master\Labb_1\Labb_1\bin\Debug\net10.0\Labb_1.exe
+C:\Users\thuza\Documents\Git\Github\Master\Master\Labb_1\Labb_1\bin\Debug\net10.0\Labb_1.deps.json
+C:\Users\thuza\Documents\Git\Github\Master\Master\Labb_1\Labb_1\bin\Debug\net10.0\Labb_1.runtimeconfig.json
+C:\Users\thuza\Documents\Git\Github\Master\Master\Labb_1\Labb_1\bin\Debug\net10.0\Labb_1.dll
+C:\Users\thuza\Documents\Git\Github\Master\Master\Labb_1\Labb_1\bin\Debug\net10.0\Labb_1.pdb
+C:\Users\thuza\Documents\Git\Github\Master\Master\Labb_1\Labb_1\obj\Debug\net10.0\Labb_1.dll
+C:\Users\thuza\Documents\Git\Github\Master\Master\Labb_1\Labb_1\obj\Debug\net10.0\refint\Labb_1.dll
+C:\Users\thuza\Documents\Git\Github\Master\Master\Labb_1\Labb_1\obj\Debug\net10.0\Labb_1.pdb
+C:\Users\thuza\Documents\Git\Github\Master\Master\Labb_1\Labb_1\obj\Debug\net10.0\Labb_1.genruntimeconfig.cache
+C:\Users\thuza\Documents\Git\Github\Master\Master\Labb_1\Labb_1\obj\Debug\net10.0\ref\Labb_1.dll
+C:\Users\thuza\Documents\Git\Github\Master\Master\Labb_1\Labb_1\obj\Debug\net10.0\Labb_1.csproj.Up2Date
