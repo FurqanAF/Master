@@ -10,16 +10,16 @@ static string myLineread()
 Console.WriteLine("Enter a string:");
 string myString = myLineread();
 int strlen = myString.Length;
-
+long total_substring = 0;
 for (int i = 0; i < strlen; i++) 
 {
     bool isaNumberfirst = char.IsDigit(myString[i]);
     
         if (isaNumberfirst is true) 
     {  // int matchnumber = myString[i] - '0';
-        char checkNumberfirst = myString[i];
+       // char checkNumberfirst = myString[i];
 
-        for (int j = i + 1; j < strlen - 1; j++) 
+        for (int j = i + 1; j < strlen; j++) 
         {
             if ((myString[i] != myString[j] && char.IsDigit(myString[j]) == true))
                 continue;
@@ -34,6 +34,7 @@ for (int i = 0; i < strlen; i++)
                 Console.ForegroundColor = ConsoleColor.Red;
 
                 Console.Write(myString[i..(j+1)]);
+                total_substring += long.Parse(myString[i..(j + 1)]);
 
                 Console.ResetColor();
 
@@ -44,3 +45,4 @@ for (int i = 0; i < strlen; i++)
         }
             }
     }
+Console.WriteLine($"\nThe substring total amounts to {total_substring}");

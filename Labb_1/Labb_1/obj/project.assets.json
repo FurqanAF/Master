@@ -8,19 +8,24 @@
     "net10.0": []
   },
   "packageFolders": {
-    "C:\\Users\\thuza\\.nuget\\packages\\": {}
+    "C:\\Users\\thuza\\.nuget\\packages\\": {},
+    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\thuza\\Documents\\Git\\Github\\Master\\Master\\Labb_1\\Labb_1\\Labb_1.csproj",
+      "projectUniqueName": "C:\\Users\\thuza\\Documents\\GitHub\\Master\\Labb_1\\Labb_1\\Labb_1.csproj",
       "projectName": "Labb_1",
-      "projectPath": "C:\\Users\\thuza\\Documents\\Git\\Github\\Master\\Master\\Labb_1\\Labb_1\\Labb_1.csproj",
+      "projectPath": "C:\\Users\\thuza\\Documents\\GitHub\\Master\\Labb_1\\Labb_1\\Labb_1.csproj",
       "packagesPath": "C:\\Users\\thuza\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\thuza\\Documents\\Git\\Github\\Master\\Master\\Labb_1\\Labb_1\\obj\\",
+      "outputPath": "C:\\Users\\thuza\\Documents\\GitHub\\Master\\Labb_1\\Labb_1\\obj\\",
       "projectStyle": "PackageReference",
+      "fallbackFolders": [
+        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+      ],
       "configFilePaths": [
         "C:\\Users\\thuza\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
