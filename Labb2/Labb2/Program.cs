@@ -1,8 +1,14 @@
 ﻿// LevelElement
 using System.Drawing;
+using System.Globalization;
 using System.Numerics;
+using System.Reflection.Metadata.Ecma335;
 using System.Security.Cryptography.X509Certificates;
 using System.Xml.Linq;
+
+
+Game game = new Game();
+game.runGame();
 
 public abstract class LevelElement
 {
@@ -19,7 +25,49 @@ public abstract class LevelElement
         Console.ResetColor(); // ifall jag vill lägga till textpopups osv
     }
 }
+public class LevelData
+{
+    private List<LevelElement> elements = new();
+    public List<LevelElement> Elements => elements;
+    public void Load(string filename)
+    {
+        
+        string[] lines = File.ReadAllLines(filename);
 
+        for (int y = 0; y < lines.Length; y++)
+        {
+            for (int x = 0; x < lines[y].Length; x++)
+            {
+                char currentChar = lines[y][x];
+                switch(currentChar)
+                {
+                    case '#':
+                        Wall wall = new Wall();
+                        wall.X = x; wall.Y = y;
+                        elements.Add(wall);
+                        break;
+                    case '@':
+                        Player player = new Player();
+                        player.X = x; player.Y = y;
+                        elements.Add(player);
+                        break;
+                    case 'r':
+                        Rat rat = new Rat();
+                        rat.X = x; rat.Y = y; 
+                        elements.Add(rat);
+                        break;
+                    case 's':
+                        Snake snake = new Snake();
+                        snake.X = x; snake.Y = y;
+                        elements.Add(snake);
+                        break;
+                }
+                //draw();
+            }
+        }
+    }
+
+}
 public class Level
 {
     public List<LevelElement> Elements { get; } = new();
@@ -39,12 +87,13 @@ public class Level
 
     public Level()
     {
-        Player player = new Player();
+        Player player = new Player(this);
 
         Elements.Add(player);
         Elements.Add(new Wall());
-        Elements.Add(new Rat());
+        Elements.Add(new Rat(this));
         Elements.Add(new Snake(player, this));
+
     }
 }
 
@@ -63,8 +112,8 @@ public abstract class Enemy : LevelElement
 {
     public int HP { get; set; }
     public string Name { get; set; }
-    public int AttackDice { get; set; }
-    public int DefenceDice { get; set; }
+    public Dice AttackDice { get; set; }
+    public Dice DefenceDice { get; set; }
 
     public abstract void Update();
     
@@ -73,53 +122,91 @@ public abstract class Enemy : LevelElement
 
 public class Rat : Enemy
 {
-    public Rat()
+    private Level level;
+    public Rat(Level level)
     {
+        this.level = level;
         HP = 10;
         Name = "Rat";
         Symbol = 'r';
         Color = ConsoleColor.Red;
-        //Attack = dice(a,b,c) placeholder until i make a dice function
-        //defence = dice(a2, b2, c2) same here
-        //MovementPattern = GenerateMovementPattern(x) placeholder for a case based movement pattern
+        AttackDice = new Dice(1, 6, 3);
+        DefenceDice = new Dice(1, 6, 1);
     }
     public override void Update()
     {
         int direction = Random.Shared.Next(0, 4);
-        //if-elseif logic scanning for collision and changing the direction value if collision is inbound
+        int testX = X;
+        int testY = Y;
         switch (direction) 
         {
             case 0:
-                Y--;
+                testY = Y-1;
                 break;
             case 1:
-                Y++;
+                testY = Y+1;
                 break;
             case 2:
-                X--;
+                testX = X-1;
                 break;
             case 3:
-                X++;
+                testX = X+1;
                 break;
+
+        }
+        if (level.ValidMoveCheck(this, testX, testY))
+        {
+            X = testX;
+            Y = testY;
 
         }
     }
 }
 
+public class Dice
+{
+    private int Highroll;
+    private int Lowroll;
+    private int NumberOfDice;
+    private int ThrowResult;
+    private int flat_modifier;
+    public Dice(int NumberOfDice, int SidesPerDice, int flat_modifier)
+    {
+        Highroll = SidesPerDice;
+        Lowroll = 1;
+        this.NumberOfDice = NumberOfDice;
+        this.flat_modifier = flat_modifier;
+    }
+    public override string ToString()
+    {
+        return $"{NumberOfDice}d{Highroll}+{flat_modifier}";
+    }
+    public int Throw()
+    {
+        ThrowResult = 0;
+        for (int i = 0; i < NumberOfDice; i++)
+        {
+            ThrowResult += Random.Shared.Next(Lowroll, Highroll + 1);
+        }
+        ThrowResult += flat_modifier;
+        return ThrowResult;
+    }
+}
 public class Snake : Enemy
 {
     private Player player;
     private Level level;
+    private Dice dice;
     public Snake(Player player, Level level)
     {
         this.player = player;
         this.level = level;
         HP = 25;
         Name = "Snake";
-        Symbol = 'r';
+        Symbol = 's';
         Color = ConsoleColor.Green;
-        //Attack = dice(a,b,c) placeholder until i make a dice function
-        //defence = dice(a2, b2, c2) same here
+        AttackDice = new Dice(3, 4, 2);
+        DefenceDice = new Dice(1, 8, 5);
         //MovementPattern = GeneSnakeeMovementPattern(x) placeholder for a case based movement pattern
     }
     public override void Update()
@@ -146,13 +233,15 @@ public class Snake : Enemy
                     testY += Math.Sign(deltaY);
                     break;
             }
-            for (int attempt_to_move = 0 )
-                if (level.ValidMoveCheck(this, testX, testY))
-                {
-                    X = testX;
-                    Y = testY;
-                    break;
-                }
+            if (!level.ValidMoveCheck(this, testX, testY))
+            {
+                HP = (int)(0.95 * HP - 1); //anti crowding/tactical mechanic, int is intentional functionally creating a floor()
+            }
+            else
+            {
+                X = testX;
+                Y = testY;
+            }
 
         }
 
@@ -161,17 +250,74 @@ public class Snake : Enemy
 
 public class Player : Enemy
 {
-    public Player()
+    private Level level;
+    public Player(Level level)
     {
+        this.level = level;
         HP = 100;
-        //atkdice
-        //defdice
+        AttackDice = new Dice(2, 6, 2);
+        DefenceDice = new Dice(2, 6, 0);
         Name = "Player";
-        Symbol = 'O';
+        Symbol = '@';
         Color = ConsoleColor.DarkMagenta;
     }
     public override void Update()
     {
-        throw new NotImplementedException();
+        int testX = X;
+        int testY = Y;
+        ConsoleKey key;
+        do
+        {
+            key = Console.ReadKey(true).Key;
+        }
+        while ( key is not (ConsoleKey.W or ConsoleKey.A or ConsoleKey.S or ConsoleKey.D or ConsoleKey.Spacebar));
+
+        switch (key)
+        {
+            case ConsoleKey.W:
+                testY++;
+                break;
+            case ConsoleKey.S:
+                testY--;
+                break;
+            case ConsoleKey.A:
+                testX--;
+                break;
+            case ConsoleKey.D:
+                testX++;
+                break;
+            case ConsoleKey.Spacebar:
+                break;
+        }
+        if (level.ValidMoveCheck(this, testX, testY))
+            {
+                X = testX;
+                Y = testY;
+            }
     }
 }
+
+public class Game
+{
+    private Level level;
+    private Player player;
+    bool gameisRunning = true;
+    public void runGame()
+    {
+        level = new Level();
+        player = level.Elements.OfType<Player>().FirstOrDefault();
+        while (gameisRunning)
+        {
+            player.Update();
+            foreach (Enemy enemy in level.Elements.OfType<Enemy>())
+            {
+                if (enemy is Player)
+                    continue;
+                enemy.Update();
+            }
+
+        }
+
+    }
+}
+
