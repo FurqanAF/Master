@@ -29,10 +29,11 @@ public class LevelData
 {
     private List<LevelElement> elements = new();
     public List<LevelElement> Elements => elements;
-    public void Load(string filename)
+    public void Load(string filename, Level level)
     {
         
         string[] lines = File.ReadAllLines(filename);
+        Player player = new Player(level);
 
         for (int y = 0; y < lines.Length; y++)
         {
@@ -47,58 +48,92 @@ public class LevelData
                         elements.Add(wall);
                         break;
                     case '@':
-                        Player player = new Player();
                         player.X = x; player.Y = y;
                         elements.Add(player);
                         break;
                     case 'r':
-                        Rat rat = new Rat();
+                        Rat rat = new Rat(level);
                         rat.X = x; rat.Y = y; 
                         elements.Add(rat);
                         break;
                     case 's':
-                        Snake snake = new Snake();
+                        Snake snake = new Snake(player, level);
                         snake.X = x; snake.Y = y;
                         elements.Add(snake);
                         break;
                 }
-                //draw();
             }
         }
     }
 
 }
+public static class Combat
+{
+    public static void Attack(Enemy initiator, Enemy defender)
+    {
+        int attackRoll = initiator.AttackDice.Throw();
+        int defenceRoll = defender.DefenceDice.Throw();
+        int damage =  attackRoll - defenceRoll;
+
+        if (damage > 0)
+        {
+            defender.HP -= damage;
+        }
+    }
+
+    public static void OneTurnOfCombat(Enemy initiator, Enemy defender)
+    {
+        Attack(initiator, defender);
+
+        if (defender.HP > 0)
+        {
+            Attack(defender, initiator);
+        }
+    }
+}
+
 public class Level
 {
-    public List<LevelElement> Elements { get; } = new();
+    private LevelData data;
+    private Game game;
+
+    public List<LevelElement> Elements => data.Elements;
     public bool ValidMoveCheck(LevelElement currentObject, int x, int y)
     {
 
         foreach (LevelElement element in Elements)
         {
-            if (element == currentObject) //prevents self blocking in movement
+            if (element == currentObject)
+            {
                 continue;
-            if (element.X == x && element.Y == y) //condition for invalid move
-                return false;
+            }
+            if (element.X == x && element.Y == y)
+            {
+                if (element is Wall)
+                    return false;
+
+                else if ((element is Player || currentObject is Player) 
+                    &&   (element is Enemy || currentObject is Enemy))
+                {
+                    game.EnterCombat((Enemy)currentObject,(Enemy)element);
+                }
+            }
 
         }
         return true;
     }
 
-    public Level()
+    public Level(Game game)
     {
-        Player player = new Player(this);
-
-        Elements.Add(player);
-        Elements.Add(new Wall());
-        Elements.Add(new Rat(this));
-        Elements.Add(new Snake(player, this));
-
+        data = new LevelData();
+        data.Load("Level1.txt", this);
+        this.game = game;
     }
 }
 
 public class Wall : LevelElement
 {
+    public bool Discovered { get; set; } = false;
     public Wall() 
     {
         Color = ConsoleColor.DarkGray;
@@ -130,21 +165,22 @@ public class Rat : Enemy
         Name = "Rat";
         Symbol = 'r';
         Color = ConsoleColor.Red;
-        AttackDice = new Dice(1, 6, 3);
-        DefenceDice = new Dice(1, 6, 1);
+        AttackDice = new Dice(NumberOfDice: 1, SidesPerDice: 6, flat_modifier: 3);
+        DefenceDice = new Dice(NumberOfDice: 1, SidesPerDice: 6, flat_modifier: 1);
     }
     public override void Update()
     {
+
         int direction = Random.Shared.Next(0, 4);
         int testX = X;
         int testY = Y;
         switch (direction) 
         {
             case 0:
-                testY = Y-1;
+                testY = Y+1;
                 break;
             case 1:
-                testY = Y+1;
+                testY = Y-1;
                 break;
             case 2:
                 testX = X-1;
@@ -205,8 +241,8 @@ public class Snake : Enemy
         Name = "Snake";
         Symbol = 's';
         Color = ConsoleColor.Green;
-        AttackDice = new Dice(3, 4, 2);
-        DefenceDice = new Dice(1, 8, 5);
+        AttackDice = new Dice(NumberOfDice: 3,SidesPerDice: 4,flat_modifier: 2);
+        DefenceDice = new Dice(NumberOfDice: 1,SidesPerDice: 8,flat_modifier: 5);
         //MovementPattern = GeneSnakeeMovementPattern(x) placeholder for a case based movement pattern
     }
     public override void Update()
@@ -215,14 +251,15 @@ public class Snake : Enemy
         int testY = Y;
         int deltaX = X - player.X;
         int deltaY = Y - player.Y;
-        double distance = Math.Sqrt(deltaX * deltaX + deltaY * deltaY); //2d distans ges av pythagoras
+        int distance = (int)Math.Sqrt(deltaX * deltaX + deltaY * deltaY); //valde int med mening - kändes bättre ingame
+        int snakeFreezeDistance = 2;
         int direction = Random.Shared.Next(0, 2);
         if (deltaX == 0)
-            direction = 1; //tvinga rörelse i Y-led
+            direction = 1;
         else if (deltaY == 0)
-            direction = 0; //reciprokt för X-led - för att undvika edge cases där random genererar ett case där Math.sign = 0 
+            direction = 0; 
 
-        if (distance <= 2)
+        if (distance <= snakeFreezeDistance)
         {
             switch (direction)
             {
@@ -255,8 +292,8 @@ public class Player : Enemy
     {
         this.level = level;
         HP = 100;
-        AttackDice = new Dice(2, 6, 2);
-        DefenceDice = new Dice(2, 6, 0);
+        AttackDice = new Dice(NumberOfDice: 2, SidesPerDice: 6, flat_modifier: 2);
+        DefenceDice = new Dice(NumberOfDice: 2, SidesPerDice: 6, flat_modifier: 0);
         Name = "Player";
         Symbol = '@';
         Color = ConsoleColor.DarkMagenta;
@@ -275,10 +312,10 @@ public class Player : Enemy
         switch (key)
         {
             case ConsoleKey.W:
-                testY++;
+                testY--;
                 break;
             case ConsoleKey.S:
-                testY--;
+                testY++;
                 break;
             case ConsoleKey.A:
                 testX--;
@@ -296,28 +333,119 @@ public class Player : Enemy
             }
     }
 }
+public enum GameState
+{
+    OutOfCombat,
+    InCombat,
+    GameOver
+
+}
 
 public class Game
 {
     private Level level;
     private Player player;
+    private LevelData leveldata;
+    private Enemy initiator;
+    private Enemy defender;
+    private Wall wall;
+    int sightRadius = 5;
+    private GameState currentState = GameState.OutOfCombat;
     bool gameisRunning = true;
+    public void ExitCombat(string cause)
+    {
+        if (cause == "death")
+        {
+            currentState = GameState.GameOver;
+            Console.Clear();
+            for (int i = 0; i < 100; i++)
+            {
+                Console.WriteLine("You died loser");
+            }
+            gameisRunning = false;
+        }
+        else
+        {
+            currentState = GameState.OutOfCombat;
+        }
+    }
+
+    public double DistanceToPlayer(Player player, LevelElement element)
+    {
+        int deltaX = player.X - element.X;
+        int deltaY = player.Y - element.Y;
+        double distance = Math.Sqrt(deltaX * deltaX + deltaY * deltaY);
+        return (distance);
+    }
+
+    public void EnterCombat(Enemy initiator, Enemy defender)
+    {
+        this.initiator = initiator;
+        this.defender = defender;
+        currentState = GameState.InCombat;
+    }
     public void runGame()
     {
-        level = new Level();
+        level = new Level(this);
         player = level.Elements.OfType<Player>().FirstOrDefault();
         while (gameisRunning)
         {
-            player.Update();
-            foreach (Enemy enemy in level.Elements.OfType<Enemy>())
+            while (currentState == GameState.OutOfCombat)
             {
-                if (enemy is Player)
-                    continue;
-                enemy.Update();
+                Console.Clear();
+
+                foreach (LevelElement element in level.Elements)
+                {
+                    if (DistanceToPlayer(player, element) <= sightRadius)
+                    {
+                        element.Draw();
+                        if (element is Wall wall)
+                        {
+                            wall.Discovered = true;
+                        }
+                    }
+                    else
+                    {
+                        if (element is Wall wall && wall.Discovered)
+                        {
+                            element.Draw();
+                        }
+                    }
+                }
+                player.Update();
+                foreach (Enemy enemy in level.Elements.OfType<Enemy>())
+                {
+                    if (enemy is Player)
+                        continue;
+                    enemy.Update();
+                }
             }
 
-        }
+            while (currentState == GameState.InCombat
+                && initiator.HP > 0 && defender.HP > 0)
+            {
+                ConsoleKey key;
+                do
+                {
+                    key = Console.ReadKey(true).Key;
+                }
+                while (key != ConsoleKey.Spacebar);
 
+                Combat.OneTurnOfCombat(initiator, defender);
+
+                if (player.HP <= 0)
+                {
+                    ExitCombat("death");
+
+                }
+                else if (initiator.HP <= 0 ||  defender.HP <= 0)
+                {
+                    Enemy defeatedEnemy = initiator is Player ? defender : initiator;
+                    level.Elements.Remove(defeatedEnemy);
+                    ExitCombat("survived");
+                }
+            }
+        }
     }
 }
 
