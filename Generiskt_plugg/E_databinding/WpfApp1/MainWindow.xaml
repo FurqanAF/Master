@@ -46,20 +46,32 @@
 
         </StackPanel>
         -->
-        <StackPanel>
+        <StackPanel x:Name="MyPanel">
             <TextBlock>
-                <Run Text="{Binding FirstName}"/>
+                <Run Text="{Binding FirstName, UpdateSourceTrigger=PropertyChanged}"/>
                 <Run Text="{Binding LastName}"/>
                 <Run Text="är"/>
                 <Run Text="{Binding Age}"/>
                 <Run Text="år gammal."/>
             </TextBlock>
             <TextBox
-                Text="{Binding FirstName}"
+                Text="{Binding FirstName, UpdateSourceTrigger=PropertyChanged}"
                 />
             <TextBox 
-                Text="{}"
+                Text="{Binding LastName, UpdateSourceTrigger=Default}"
                 />
+            <Slider
+                Minimum="0"
+                Maximum="120"
+                Value="{Binding Age, Mode=TwoWay}"
+                />
+            <Button 
+                x:Name="MyButton"
+                Height="50"
+                Width="125"
+                Content ="Change Name"
+                Click="MyButton_Click"
+                    />
         </StackPanel>
 
     </Grid>
